@@ -1,0 +1,647 @@
+"""Streamlit workbench for fixed-width integer-machine demonstrations."""
+
+from __future__ import annotations
+
+import html
+from dataclasses import asdict
+from typing import Any
+
+import streamlit as st
+
+from integer_machine.conversion import convert_decimal
+from integer_machine.division import divide_unsigned
+from integer_machine.models import (
+    ConversionResult,
+    DivisionResult,
+    MultiplicationResult,
+    RepresentationOutcome,
+)
+from integer_machine.multiplication import multiply_unsigned
+from integer_machine.parsing import (
+    InputValidationError,
+    format_bits,
+    group_bits,
+    parse_decimal,
+    parse_unsigned_operand,
+)
+
+st.set_page_config(
+    page_title="Integer Machine",
+    page_icon="▦",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+
+def inject_theme() -> None:
+    """Apply the restrained computer-architecture laboratory theme."""
+    st.markdown(
+        """
+        <style>
+        :root {
+          --paper: #F5F7F4;
+          --ink: #182321;
+          --blueprint: #14282C;
+          --teal: #167C80;
+          --amber: #E9A23B;
+          --muted: #5B6C68;
+          --line: #AFC1BC;
+          --wash: #E8EFEC;
+          --mono: "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+          --display: "Arial Narrow", "Aptos Display", "Segoe UI", sans-serif;
+          --body: "Aptos", "Segoe UI", system-ui, sans-serif;
+        }
+
+        .stApp {
+          background:
+            linear-gradient(rgba(20, 40, 44, 0.025) 1px, transparent 1px),
+            var(--paper);
+          background-size: 100% 36px;
+          color: var(--ink);
+          font-family: var(--body);
+        }
+
+        .block-container {
+          max-width: 1380px;
+          padding-top: 2.2rem;
+          padding-bottom: 4rem;
+        }
+
+        h1, h2, h3 {
+          color: var(--blueprint) !important;
+          font-family: var(--display) !important;
+          letter-spacing: -0.025em !important;
+        }
+
+        h1 {
+          font-size: clamp(2.35rem, 5vw, 4.5rem) !important;
+          font-weight: 700 !important;
+          line-height: 0.92 !important;
+          margin: 0.1rem 0 0.6rem !important;
+        }
+
+        .lab-eyebrow {
+          color: var(--teal);
+          font-family: var(--mono);
+          font-size: 0.72rem;
+          font-weight: 700;
+          letter-spacing: 0.16em;
+          margin: 0;
+          text-transform: uppercase;
+        }
+
+        .machine-rail {
+          align-items: center;
+          background: var(--blueprint);
+          border-radius: 3px;
+          color: var(--paper);
+          display: grid;
+          font-family: var(--mono);
+          grid-template-columns: auto 1fr auto 1fr auto;
+          margin: 1rem 0 0.7rem;
+          max-width: 540px;
+          padding: 0.62rem 0.8rem;
+        }
+
+        .rail-node {
+          border: 1px solid rgba(245, 247, 244, 0.72);
+          border-radius: 2px;
+          font-size: 0.76rem;
+          font-weight: 700;
+          min-width: 2.1rem;
+          padding: 0.22rem 0.45rem;
+          text-align: center;
+        }
+
+        .rail-bus {
+          background: var(--amber);
+          height: 2px;
+        }
+
+        .machine-rail small {
+          color: #C9D7D3;
+          font-size: 0.62rem;
+          grid-column: 1 / -1;
+          letter-spacing: 0.08em;
+          margin-top: 0.45rem;
+          text-transform: uppercase;
+        }
+
+        .workbench-intro {
+          color: var(--muted);
+          font-size: 0.95rem;
+          line-height: 1.55;
+          margin-bottom: 1.25rem;
+          max-width: 72ch;
+        }
+
+        .bay-label {
+          border-bottom: 1px solid var(--line);
+          color: var(--muted);
+          font-family: var(--mono);
+          font-size: 0.69rem;
+          font-weight: 700;
+          letter-spacing: 0.13em;
+          margin: 0.35rem 0 1rem;
+          padding-bottom: 0.45rem;
+          text-transform: uppercase;
+        }
+
+        .register-card {
+          background: #FBFCFA;
+          border: 1px solid var(--line);
+          border-left: 4px solid var(--teal);
+          border-radius: 3px;
+          margin: 0.6rem 0;
+          padding: 0.8rem 0.9rem 0.75rem;
+        }
+
+        .register-card > span {
+          color: var(--muted);
+          display: block;
+          font-family: var(--mono);
+          font-size: 0.67rem;
+          font-weight: 700;
+          letter-spacing: 0.11em;
+          text-transform: uppercase;
+        }
+
+        .register-card code {
+          background: transparent;
+          color: var(--blueprint);
+          display: block;
+          font-family: var(--mono);
+          font-size: clamp(0.92rem, 1.6vw, 1.15rem);
+          font-weight: 700;
+          line-height: 1.65;
+          overflow-wrap: anywhere;
+          padding: 0.12rem 0;
+          white-space: pre-wrap;
+        }
+
+        .register-card small {
+          color: var(--muted);
+          display: block;
+          font-size: 0.75rem;
+        }
+
+        .representation-error {
+          background: #FFF5E5;
+          border: 1px solid #E0BB79;
+          border-left: 4px solid var(--amber);
+          border-radius: 3px;
+          color: var(--ink);
+          margin: 0.6rem 0;
+          padding: 0.8rem 0.9rem;
+        }
+
+        .representation-error strong {
+          display: block;
+          font-family: var(--mono);
+          font-size: 0.7rem;
+          letter-spacing: 0.08em;
+          margin-bottom: 0.2rem;
+          text-transform: uppercase;
+        }
+
+        div[data-testid="stMetric"] {
+          background: #FBFCFA;
+          border: 1px solid var(--line);
+          border-radius: 3px;
+          padding: 0.7rem 0.85rem;
+        }
+
+        div[data-testid="stMetricLabel"] {
+          color: var(--muted);
+          font-family: var(--mono);
+          letter-spacing: 0.04em;
+        }
+
+        div[data-testid="stDataFrame"] {
+          border: 1px solid var(--line);
+          border-radius: 3px;
+        }
+
+        div[data-testid="stForm"] {
+          background: rgba(232, 239, 236, 0.48);
+          border: 1px solid var(--line);
+          border-radius: 3px;
+          padding: 1rem;
+        }
+
+        div[data-baseweb="tab-list"] {
+          gap: 0.5rem;
+        }
+
+        button[data-baseweb="tab"] {
+          font-family: var(--mono);
+          font-weight: 700;
+          letter-spacing: 0.02em;
+        }
+
+        .trace-heading {
+          align-items: baseline;
+          border-top: 2px solid var(--blueprint);
+          display: flex;
+          gap: 1rem;
+          justify-content: space-between;
+          margin-top: 1.35rem;
+          padding-top: 0.85rem;
+        }
+
+        .trace-heading strong {
+          color: var(--blueprint);
+          font-family: var(--display);
+          font-size: 1.15rem;
+        }
+
+        .trace-heading span {
+          color: var(--muted);
+          font-family: var(--mono);
+          font-size: 0.68rem;
+          text-transform: uppercase;
+        }
+
+        @media (max-width: 720px) {
+          .block-container { padding: 1.25rem 1rem 3rem; }
+          .machine-rail { max-width: none; }
+          .trace-heading { align-items: flex-start; flex-direction: column; gap: 0.2rem; }
+          div[data-testid="stHorizontalBlock"] { flex-wrap: wrap; }
+          div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {
+            flex: 1 1 100%;
+            min-width: 100%;
+          }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def initialize_state() -> None:
+    """Create operation state without overwriting results during widget reruns."""
+    defaults: dict[str, Any] = {
+        "conversion_result": None,
+        "conversion_error": None,
+        "multiplication_result": None,
+        "multiplication_error": None,
+        "division_result": None,
+        "division_error": None,
+    }
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
+
+
+def register_value(label: str, bits: str, caption: str = "") -> None:
+    """Render a fixed-width bit value as a register card."""
+    st.markdown(
+        f"""
+        <div class="register-card">
+          <span>{html.escape(label)}</span>
+          <code>{html.escape(group_bits(bits))}</code>
+          <small>{html.escape(caption)}</small>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_representation(outcome: RepresentationOutcome) -> None:
+    """Render one independently evaluated conversion representation."""
+    range_caption = f"Range {outcome.minimum:,} to {outcome.maximum:,}"
+    if outcome.fits and outcome.bits is not None:
+        register_value(outcome.label, outcome.bits, range_caption)
+    else:
+        st.markdown(
+            f"""
+            <div class="representation-error">
+              <strong>{html.escape(outcome.label)}</strong>
+              {html.escape(outcome.error or "This value cannot be represented.")}
+              <br><small>{html.escape(range_caption)}</small>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+def render_trace(rows: list[dict[str, Any]], register_set: str) -> None:
+    """Render every recorded trace row in a horizontally scrollable table."""
+    st.markdown(
+        f"""
+        <div class="trace-heading">
+          <strong>Register trace</strong>
+          <span>{len(rows)} recorded states · {html.escape(register_set)}</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.caption("Scroll horizontally to inspect each register transition.")
+    st.dataframe(
+        rows,
+        use_container_width=True,
+        hide_index=True,
+        height=min(38 * len(rows) + 44, 520),
+    )
+
+
+def multiplication_trace(result: MultiplicationResult) -> list[dict[str, Any]]:
+    """Present immutable multiplication steps with the constant M register."""
+    rows = []
+    multiplicand_bits = format_bits(result.multiplicand, result.width)
+    labels = {
+        "cycle": "Cycle",
+        "q0": "Q₀",
+        "action": "Action",
+        "c_before": "C before",
+        "a_before": "A before",
+        "q_before": "Q before",
+        "addition_result": "Add result",
+        "c_after": "C",
+        "a_after": "A",
+        "q_after": "Q",
+    }
+    for step in result.steps:
+        source = asdict(step)
+        row = {label: source[field] for field, label in labels.items()}
+        row["M"] = multiplicand_bits
+        rows.append(row)
+    return rows
+
+
+def division_trace(result: DivisionResult) -> list[dict[str, Any]]:
+    """Present immutable division steps with the constant M register."""
+    rows = []
+    divisor_bits = format_bits(result.divisor, result.width)
+    labels = {
+        "cycle": "Cycle",
+        "phase": "Phase",
+        "action": "Action",
+        "a_before": "A before",
+        "q_before": "Q before",
+        "a_after_shift": "A shifted",
+        "q_after_shift": "Q shifted",
+        "a_after_operation": "A after ±M",
+        "q_bit": "Q₀",
+        "a_after": "A",
+        "q_after": "Q",
+    }
+    for step in result.steps:
+        source = asdict(step)
+        row = {label: source[field] for field, label in labels.items()}
+        row["M"] = divisor_bits
+        rows.append(row)
+    return rows
+
+
+def render_conversion() -> None:
+    """Render the independent signed/unsigned conversion workbench."""
+    left, right = st.columns([0.86, 1.14], gap="large")
+    with left:
+        st.markdown('<div class="bay-label">Input bay · fixed width</div>', unsafe_allow_html=True)
+        with st.form("conversion-form"):
+            value_text = st.text_input(
+                "Decimal integer",
+                value="42",
+                key="conversion-value",
+                help="A signed base-10 integer.",
+            )
+            width = st.number_input(
+                "Data size (bits)",
+                min_value=2,
+                max_value=256,
+                value=8,
+                step=1,
+                key="conversion-width",
+            )
+            submitted = st.form_submit_button(
+                "Convert integer",
+                use_container_width=True,
+            )
+
+        if submitted:
+            try:
+                value = parse_decimal(value_text)
+                st.session_state.conversion_result = convert_decimal(value, int(width))
+                st.session_state.conversion_error = None
+            except InputValidationError as exc:
+                st.session_state.conversion_result = None
+                st.session_state.conversion_error = str(exc)
+
+    with right:
+        st.markdown('<div class="bay-label">Result bay · independent interpretations</div>', unsafe_allow_html=True)
+        if st.session_state.conversion_error:
+            st.error(st.session_state.conversion_error)
+        result: ConversionResult | None = st.session_state.conversion_result
+        if result is None and not st.session_state.conversion_error:
+            st.info("Enter an integer, then convert it at the selected data size.")
+        elif result is not None:
+            st.metric("Input (decimal)", str(result.value))
+            render_representation(result.unsigned)
+            render_representation(result.signed)
+
+    with st.expander("Guided reading · two interpretations, one bit width"):
+        st.markdown(
+            r"""
+            1. **Set the width.** An \(n\)-bit register has exactly \(2^n\) bit patterns.
+            2. **Check unsigned range.** Interpret every pattern from \(0\) through \(2^n-1\).
+            3. **Check signed range independently.** Two's complement spans
+               \(-2^{n-1}\) through \(2^{n-1}-1\).
+            4. **Encode only when the value fits.** One interpretation may succeed while
+               the other reports overflow.
+            """
+        )
+
+
+def render_multiplication() -> None:
+    """Render the unsigned add-and-shift multiplication workbench."""
+    left, right = st.columns([0.86, 1.14], gap="large")
+    with left:
+        st.markdown('<div class="bay-label">Input bay · unsigned operands</div>', unsafe_allow_html=True)
+        with st.form("multiplication-form"):
+            base_label = st.radio(
+                "Shared input format",
+                ["Decimal", "Binary"],
+                horizontal=True,
+                key="multiplication-base",
+                help="The selected format applies to both operands.",
+            )
+            multiplicand_text = st.text_input(
+                "Multiplicand (M)",
+                value="13",
+                key="multiplication-multiplicand",
+            )
+            multiplier_text = st.text_input(
+                "Multiplier (Q)",
+                value="11",
+                key="multiplication-multiplier",
+            )
+            width = st.number_input(
+                "Data size (bits)",
+                min_value=2,
+                max_value=256,
+                value=8,
+                step=1,
+                key="multiplication-width",
+            )
+            submitted = st.form_submit_button(
+                "Run unsigned multiplier",
+                use_container_width=True,
+            )
+
+        if submitted:
+            try:
+                base = "decimal" if base_label == "Decimal" else "binary"
+                multiplicand = parse_unsigned_operand(multiplicand_text, base, int(width))
+                multiplier = parse_unsigned_operand(multiplier_text, base, int(width))
+                st.session_state.multiplication_result = multiply_unsigned(
+                    multiplicand, multiplier, int(width)
+                )
+                st.session_state.multiplication_error = None
+            except InputValidationError as exc:
+                st.session_state.multiplication_result = None
+                st.session_state.multiplication_error = str(exc)
+
+    with right:
+        st.markdown('<div class="bay-label">Result bay · A:Q product</div>', unsafe_allow_html=True)
+        if st.session_state.multiplication_error:
+            st.error(st.session_state.multiplication_error)
+        result: MultiplicationResult | None = st.session_state.multiplication_result
+        if result is None and not st.session_state.multiplication_error:
+            st.info("Run the unsigned multiplier to expose the C, A, Q, and M registers.")
+        elif result is not None:
+            st.metric("Product (decimal)", str(result.product))
+            register_value(
+                "Product (binary) · A:Q",
+                result.product_bits,
+                f"{result.width * 2}-bit product",
+            )
+
+    with st.expander("Guided reading · sequential add and shift"):
+        st.markdown(
+            r"""
+            1. **Load registers.** Set \(C=0\), \(A=0\), \(Q=\) multiplier, and
+               \(M=\) multiplicand.
+            2. **Inspect \(Q_0\).** If the least-significant bit is 1, add \(M\) to \(A\);
+               otherwise keep \(A\).
+            3. **Shift as one register.** Shift the concatenated \(C,A,Q\) state right once.
+            4. **Repeat once per data bit.** After \(n\) cycles, concatenated \(A:Q\)
+               is the \(2n\)-bit unsigned product.
+            """
+        )
+
+    if result is not None:
+        render_trace(multiplication_trace(result), "C · A · Q · M")
+
+
+def render_division() -> None:
+    """Render the unsigned non-restoring division workbench."""
+    left, right = st.columns([0.86, 1.14], gap="large")
+    with left:
+        st.markdown('<div class="bay-label">Input bay · unsigned operands</div>', unsafe_allow_html=True)
+        with st.form("division-form"):
+            base_label = st.radio(
+                "Shared input format",
+                ["Decimal", "Binary"],
+                horizontal=True,
+                key="division-base",
+                help="The selected format applies to both operands.",
+            )
+            dividend_text = st.text_input(
+                "Dividend (Q)",
+                value="13",
+                key="division-dividend",
+            )
+            divisor_text = st.text_input(
+                "Divisor (M)",
+                value="3",
+                key="division-divisor",
+            )
+            width = st.number_input(
+                "Data size (bits)",
+                min_value=2,
+                max_value=256,
+                value=8,
+                step=1,
+                key="division-width",
+            )
+            submitted = st.form_submit_button(
+                "Run unsigned divider",
+                use_container_width=True,
+            )
+
+        if submitted:
+            try:
+                base = "decimal" if base_label == "Decimal" else "binary"
+                dividend = parse_unsigned_operand(dividend_text, base, int(width))
+                divisor = parse_unsigned_operand(divisor_text, base, int(width))
+                st.session_state.division_result = divide_unsigned(
+                    dividend, divisor, int(width)
+                )
+                st.session_state.division_error = None
+            except InputValidationError as exc:
+                st.session_state.division_result = None
+                st.session_state.division_error = str(exc)
+
+    with right:
+        st.markdown('<div class="bay-label">Result bay · quotient and remainder</div>', unsafe_allow_html=True)
+        if st.session_state.division_error:
+            st.error(st.session_state.division_error)
+        result: DivisionResult | None = st.session_state.division_result
+        if result is None and not st.session_state.division_error:
+            st.info("Run the unsigned divider to expose the A, Q, and M registers.")
+        elif result is not None:
+            quotient_column, remainder_column = st.columns(2)
+            quotient_column.metric("Quotient (decimal)", str(result.quotient))
+            remainder_column.metric("Remainder (decimal)", str(result.remainder))
+            register_value("Quotient (binary) · Q", result.quotient_bits)
+            register_value("Remainder (binary) · A", result.remainder_bits)
+
+    with st.expander("Guided reading · non-restoring division"):
+        st.markdown(
+            r"""
+            1. **Load registers.** Set signed \(A=0\), \(Q=\) dividend, and \(M=\) divisor.
+            2. **Shift \(A,Q\) left.** Use the previous sign of \(A\) to choose the operation:
+               subtract \(M\) after a nonnegative \(A\), or add \(M\) after a negative \(A\).
+            3. **Write the quotient bit.** Set \(Q_0=1\) when the new \(A\) is nonnegative;
+               otherwise write 0.
+            4. **Restore once if needed.** After \(n\) cycles, add \(M\) to a negative
+               final \(A\). Then \(Q\) is the quotient and \(A\) is the remainder.
+            """
+        )
+
+    if result is not None:
+        render_trace(division_trace(result), "A · Q · M")
+
+
+inject_theme()
+initialize_state()
+
+st.markdown('<p class="lab-eyebrow">Machine 1 · register-state workbench</p>', unsafe_allow_html=True)
+st.title("Integer Machine")
+st.markdown(
+    """
+    <div class="machine-rail" aria-label="C A Q register bus">
+      <span class="rail-node">C</span><span class="rail-bus"></span>
+      <span class="rail-node">A</span><span class="rail-bus"></span>
+      <span class="rail-node">Q</span>
+      <small>carry · accumulator · multiplier / quotient</small>
+    </div>
+    <p class="workbench-intro">
+      Convert fixed-width integers, then inspect unsigned multiplication and division
+      one register transition at a time. The interface is limited to 2–256 bits;
+      the Python teaching core remains arbitrary precision.
+    </p>
+    """,
+    unsafe_allow_html=True,
+)
+
+conversion_tab, multiplication_tab, division_tab = st.tabs(
+    ["Conversion", "Multiplication", "Division"]
+)
+with conversion_tab:
+    render_conversion()
+with multiplication_tab:
+    render_multiplication()
+with division_tab:
+    render_division()
