@@ -1,10 +1,9 @@
-# CSARCH2 Simulation Project 1
+# CSARCH2 Case Study 1
 
 **Machine:** _Machine 1 - Integer Machine_ <br>
 **Subject:** _CSARCH2_ <br>
 **Section:** _S03_ <br>
 **Group:** _Group 7_ <br>
-**Term:** _3rd Term, AY 2025-2026_ <br>
 **GitHub Link:** https://github.com/ainere/CSARCH2-Case-Study-1-Integer-Machine <br>
 **Website Link:** _Pending deployment_
 
