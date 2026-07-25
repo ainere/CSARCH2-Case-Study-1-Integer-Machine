@@ -264,15 +264,3 @@ collects inputs, calls the appropriate algorithm, and renders the results.
   findings.
 
 ---
-
-## Disclosure on the Use of AI / LLM Tools
-
-The group used **OpenAI Codex** to support the initial implementation,
-interface prototyping, local verification, and documentation of this working
-draft.
-The generated work must still be reviewed, understood, and verified by the
-group before final submission and presentation.
-
-| Tool | Purpose |
-| --- | --- |
-| OpenAI Codex | Streamlit prototyping, Python implementation support, local verification, and README organization |
