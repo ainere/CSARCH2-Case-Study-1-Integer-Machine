@@ -39,14 +39,17 @@ def inject_theme() -> None:
         """
         <style>
         :root {
-          --paper: #F5F7F4;
-          --ink: #182321;
-          --blueprint: #14282C;
-          --teal: #167C80;
-          --amber: #E9A23B;
-          --muted: #5B6C68;
-          --line: #AFC1BC;
-          --wash: #E8EFEC;
+          --board: #0F1E22;
+          --board-raised: #14282C;
+          --paper: #0F1E22;
+          --ink: #EAF3DE;
+          --blueprint: #EAF3DE;
+          --teal: #5DCAA5;
+          --teal-dim: #1D9E75;
+          --amber: #EF9F27;
+          --muted: #7FA69C;
+          --line: #2C4A46;
+          --wash: #14282C;
           --mono: "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
           --display: "Arial Narrow", "Aptos Display", "Segoe UI", sans-serif;
           --body: "Aptos", "Segoe UI", system-ui, sans-serif;
@@ -54,9 +57,10 @@ def inject_theme() -> None:
 
         .stApp {
           background:
-            linear-gradient(rgba(20, 40, 44, 0.025) 1px, transparent 1px),
-            var(--paper);
-          background-size: 100% 36px;
+            linear-gradient(rgba(93, 202, 165, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(93, 202, 165, 0.05) 1px, transparent 1px),
+            var(--board);
+          background-size: 28px 28px, 28px 28px;
           color: var(--ink);
           font-family: var(--body);
         }
@@ -92,9 +96,10 @@ def inject_theme() -> None:
 
         .machine-rail {
           align-items: center;
-          background: var(--blueprint);
+          background: var(--board-raised);
+          border: 1px solid var(--line);
           border-radius: 3px;
-          color: var(--paper);
+          color: var(--ink);
           display: grid;
           font-family: var(--mono);
           grid-template-columns: auto 1fr auto 1fr auto;
@@ -104,8 +109,9 @@ def inject_theme() -> None:
         }
 
         .rail-node {
-          border: 1px solid rgba(245, 247, 244, 0.72);
+          border: 1px solid var(--teal);
           border-radius: 2px;
+          color: var(--ink);
           font-size: 0.76rem;
           font-weight: 700;
           min-width: 2.1rem;
@@ -119,7 +125,7 @@ def inject_theme() -> None:
         }
 
         .machine-rail small {
-          color: #C9D7D3;
+          color: var(--muted);
           font-size: 0.62rem;
           grid-column: 1 / -1;
           letter-spacing: 0.08em;
@@ -148,10 +154,10 @@ def inject_theme() -> None:
         }
 
         .register-card {
-          background: #FBFCFA;
+          background: var(--board-raised);
           border: 1px solid var(--line);
           border-left: 4px solid var(--teal);
-          border-radius: 3px;
+          border-radius: 0 3px 3px 0;
           margin: 0.6rem 0;
           padding: 0.8rem 0.9rem 0.75rem;
         }
@@ -186,10 +192,10 @@ def inject_theme() -> None:
         }
 
         .representation-error {
-          background: #FFF5E5;
-          border: 1px solid #E0BB79;
+          background: rgba(239, 159, 39, 0.1);
+          border: 1px solid var(--amber);
           border-left: 4px solid var(--amber);
-          border-radius: 3px;
+          border-radius: 0 3px 3px 0;
           color: var(--ink);
           margin: 0.6rem 0;
           padding: 0.8rem 0.9rem;
@@ -205,16 +211,24 @@ def inject_theme() -> None:
         }
 
         div[data-testid="stMetric"] {
-          background: #FBFCFA;
+          background: var(--board-raised);
           border: 1px solid var(--line);
           border-radius: 3px;
           padding: 0.7rem 0.85rem;
         }
 
-        div[data-testid="stMetricLabel"] {
-          color: var(--muted);
+        div[data-testid="stMetricLabel"],
+        div[data-testid="stMetricLabel"] *,
+        div[data-testid="stMetricLabel"] p,
+        div[data-testid="stMetricLabel"] span,
+        div[data-testid="stMetricLabel"] label {
+          color: var(--muted) !important;
           font-family: var(--mono);
           letter-spacing: 0.04em;
+        }
+
+        div[data-testid="stMetricValue"] {
+          color: var(--teal) !important;
         }
 
         div[data-testid="stDataFrame"] {
@@ -223,10 +237,30 @@ def inject_theme() -> None:
         }
 
         div[data-testid="stForm"] {
-          background: rgba(232, 239, 236, 0.48);
+          background: rgba(20, 40, 44, 0.55);
           border: 1px solid var(--line);
           border-radius: 3px;
           padding: 1rem;
+        }
+
+        div[data-testid="stFormSubmitButton"] button,
+        div[data-testid="stBaseButton-secondaryFormSubmit"],
+        div[data-testid="stButton"] button {
+          background: var(--board-raised) !important;
+          border: 1px solid var(--teal) !important;
+          color: var(--ink) !important;
+        }
+
+        div[data-testid="stFormSubmitButton"] button:hover,
+        div[data-testid="stButton"] button:hover {
+          background: var(--board) !important;
+          border-color: var(--amber) !important;
+          color: var(--amber) !important;
+        }
+
+        div[data-testid="stFormSubmitButton"] button p,
+        div[data-testid="stButton"] button p {
+          color: inherit !important;
         }
 
         div[data-baseweb="tab-list"] {
@@ -234,14 +268,96 @@ def inject_theme() -> None:
         }
 
         button[data-baseweb="tab"] {
+          color: #A9C4BE !important;
           font-family: var(--mono);
           font-weight: 700;
           letter-spacing: 0.02em;
         }
 
+        button[data-baseweb="tab"] p {
+          color: inherit !important;
+        }
+
+        button[aria-selected="true"][data-baseweb="tab"] {
+          color: var(--teal) !important;
+        }
+
+        div[data-baseweb="tab-highlight"] {
+          background-color: var(--amber) !important;
+        }
+
+        div[data-testid="stExpander"] details {
+          background: var(--board-raised) !important;
+          border: 1px solid var(--line) !important;
+          border-radius: 3px;
+        }
+
+        div[data-testid="stExpander"] summary {
+          color: var(--ink) !important;
+        }
+
+        div[data-testid="stExpander"] summary p,
+        div[data-testid="stExpander"] summary span {
+          color: var(--ink) !important;
+        }
+
+        div[data-testid="stExpander"] details:hover,
+        div[data-testid="stExpander"] summary:hover {
+          background: var(--board-raised) !important;
+          color: var(--ink) !important;
+        }
+
+        div[data-testid="stExpander"] summary:hover p,
+        div[data-testid="stExpander"] summary:hover span {
+          color: var(--teal) !important;
+        }
+
+        div[data-testid="stExpander"] summary svg {
+          fill: var(--ink) !important;
+          color: var(--ink) !important;
+        }
+
+        /* Widget labels: "Decimal integer", "Data size (bits)", "Multiplicand (M)", etc. */
+        div[data-testid="stWidgetLabel"] label,
+        div[data-testid="stWidgetLabel"] p,
+        div[data-testid="stWidgetLabel"] span {
+          color: var(--ink) !important;
+        }
+
+        /* Metric labels: "Input (decimal)", "Product (decimal)", "Quotient (decimal)", etc. */
+        div[data-testid="stMetricLabel"] p,
+        div[data-testid="stMetricLabel"] span {
+          color: var(--muted) !important;
+        }
+
+        /* Radio group: "Shared input format" options (Decimal / Binary) */
+        div[data-testid="stRadio"] label,
+        div[data-testid="stRadio"] label p,
+        div[data-testid="stRadio"] label span {
+          color: var(--ink) !important;
+        }
+
+        div[data-testid="stRadio"] label:hover,
+        div[data-testid="stRadio"] label:hover p,
+        div[data-testid="stRadio"] label:hover span {
+          color: var(--teal) !important;
+        }
+
+        /* Help-icon tooltips that appear on hover next to labels */
+        div[data-testid="stTooltipContent"],
+        div[data-baseweb="tooltip"] {
+          background: var(--board-raised) !important;
+          border: 1px solid var(--line) !important;
+          color: var(--ink) !important;
+        }
+
+        div[data-testid="stTooltipContent"] p {
+          color: var(--ink) !important;
+        }
+
         .trace-heading {
           align-items: baseline;
-          border-top: 2px solid var(--blueprint);
+          border-top: 2px solid var(--teal-dim);
           display: flex;
           gap: 1rem;
           justify-content: space-between;
@@ -250,7 +366,7 @@ def inject_theme() -> None:
         }
 
         .trace-heading strong {
-          color: var(--blueprint);
+          color: var(--ink);
           font-family: var(--display);
           font-size: 1.15rem;
         }
