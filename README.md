@@ -26,7 +26,7 @@ both the final answer and the intermediate register states used to reach it.
 The website currently includes three working tools:
 
 1. decimal-to-binary integer conversion;
-2. unsigned sequential add-and-shift multiplication; and
+2. signed sequential multiplication (Booth's algorithm); and
 3. unsigned non-restoring division.
 
 Each tool accepts user input, validates it against the selected data size, and
@@ -53,7 +53,7 @@ running Streamlit.
 
 - fixed-width signed and unsigned conversion;
 - input parsing and range validation;
-- sequential multiplication using `C`, `A`, `Q`, and `M`;
+- signed sequential multiplication (Booth's algorithm) using `A`, `Q`, `Q-1`, and `M`;
 - non-restoring division using `A`, `Q`, and `M`; and
 - immutable result and trace records.
 
