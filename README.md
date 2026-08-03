@@ -232,8 +232,7 @@ collects inputs, calls the appropriate algorithm, and renders the results.
 - Created a working Streamlit website with a responsive technical-laboratory
   visual style.
 - Implemented independent unsigned and signed fixed-width conversion results.
-- Implemented unsigned sequential multiplication with complete `C,A,Q,M`
-  register traces.
+- Implemented signed sequential multiplication (Booth's algorithm) with complete `A,Q,Q-1,M` register traces.
 - Implemented unsigned non-restoring division with complete `A,Q,M` traces and
   final remainder restoration.
 - Added decimal and binary operand formats with readable grouped binary output.
@@ -244,8 +243,8 @@ collects inputs, calls the appropriate algorithm, and renders the results.
 
 ## Current Limitations and Pending Work
 
-- Multiplication and division currently support **unsigned operands only**.
-- Signed multiplication and signed division are not implemented.
+- Division currently supports **unsigned operands only**.
+- Signed division is not implemented.
 - Calculations are not saved after the application session ends.
 - Per-cycle animation is not included; the complete states are presented in
   tables instead.
