@@ -100,21 +100,22 @@ not fit signed 8-bit two's complement.
 
 ### 2. Sequential Multiplication
 
-**Concept:** Demonstrates unsigned add-and-shift multiplication using the
-`C`, `A`, `Q`, and `M` registers.
+**Concept:** Demonstrates signed sequential circuit multiplication using Booth's algorithm using the `A`, `Q`, `Q-1`, and `M` registers.
 
 **How it works:**
 
 - `M` stores the multiplicand.
 - `Q` stores the multiplier.
 - `A` stores the partial product.
-- `C` stores the carry bit.
-- If the current least-significant multiplier bit `Q0` is `1`, the machine
-  adds `M` to `A`.
-- The combined `C,A,Q` registers are shifted right after every cycle.
-- The final product is the concatenated `A:Q` value.
+- `Q-1` stores the extra bit for Booth's recoding.
+- The machine inspects the bit pair Q₀Q₋₁ each cycle:
+  - If 10: subtract M from A (A = A - M)
+  - If 01: add M to A (A = A + M)
+  - If 00 or 11: no operation (copy)
+- The combined `A,Q,Q-1` registers undergo an arithmetic shift right after every cycle (preserving the sign bit).
+- After `n` cycles, the final product is the concatenated `A:Q` value.
 
-The website shows the initial register state, every add/no-add decision, the
+The website shows the initial register state,  the action taken based on `Q0 Q-1`, the
 registers before and after each shift, and the final product in decimal and
 binary.
 
