@@ -9,8 +9,10 @@ from integer_machine.models import (
     MultiplicationResult,
     MultiplicationStep,
     RepresentationOutcome,
+    SignedMultiplicationResult,
+    SignedMultiplicationStep,
 )
-from integer_machine.multiplication import multiply_unsigned
+from integer_machine.multiplication import multiply_signed
 
 __all__ = [
     "ConversionResult",
@@ -19,7 +21,9 @@ __all__ = [
     "MultiplicationResult",
     "MultiplicationStep",
     "RepresentationOutcome",
+    "SignedMultiplicationResult",
+    "SignedMultiplicationStep",
     "convert_decimal",
     "divide_unsigned",
-    "multiply_unsigned",
+    "multiply_signed",
 ]

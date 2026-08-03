@@ -55,23 +55,57 @@ def parse_unsigned_operand(text: str, base: InputBase, width: int) -> int:
     return value
 
 
+def parse_signed_operand(text: str, base: InputBase, width: int) -> int:
+    """Parse a signed decimal or binary operand that fits in width bits."""
+    validate_width(width)
+    if base == "decimal":
+        value = parse_decimal(text)
+    elif base == "binary":
+        bits = normalize_binary(text)
+        if len(bits) > width:
+            raise InputValidationError(f"Binary input exceeds the selected {width}-bit size.")
+        value = int(bits, 2)
+        # Handle two's complement for binary input
+        if len(bits) == width and bits[0] == '1':
+            value = value - (1 << width)
+    else:
+        raise InputValidationError("Choose Decimal or Binary input.")
+    
+    # Check signed range
+    lower = -(1 << (width - 1))
+    upper = (1 << (width - 1)) - 1
+    if not lower <= value <= upper:
+        raise InputValidationError(
+            f"Value {value} does not fit in {width}-bit signed range ({lower} to {upper})."
+        )
+    return value
+
+
 def format_bits(value: int, width: int) -> str:
+    """Format an unsigned value as fixed-width bits."""
     validate_width(width)
     if value < 0 or value >= 1 << width:
         raise ValueError(f"{value} cannot be formatted as {width} unsigned bits")
     return format(value, f"0{width}b")
 
 
-def format_twos_complement(value: int, width: int) -> str:
+def format_signed_bits(value: int, width: int) -> str:
+    """Format a signed integer as fixed-width two's complement bits."""
     validate_width(width)
-    minimum = -(1 << (width - 1))
-    maximum = (1 << (width - 1)) - 1
-    if not minimum <= value <= maximum:
-        raise ValueError(f"{value} cannot be formatted as {width}-bit two's complement")
+    lower = -(1 << (width - 1))
+    upper = (1 << (width - 1)) - 1
+    if not lower <= value <= upper:
+        raise ValueError(f"{value} cannot be formatted as {width}-bit signed value")
     return format(value & ((1 << width) - 1), f"0{width}b")
 
 
+def format_twos_complement(value: int, width: int) -> str:
+    """Alias for format_signed_bits (for backwards compatibility)."""
+    return format_signed_bits(value, width)
+
+
 def format_register_bits(value: int, width: int) -> str:
+    """Format a register value as fixed-width bits (unsigned mask)."""
     validate_width(width)
     return format(value & ((1 << width) - 1), f"0{width}b")
 

@@ -13,15 +13,17 @@ from integer_machine.division import divide_unsigned
 from integer_machine.models import (
     ConversionResult,
     DivisionResult,
-    MultiplicationResult,
     RepresentationOutcome,
+    SignedMultiplicationResult,
 )
-from integer_machine.multiplication import multiply_unsigned
+from integer_machine.multiplication import multiply_signed
 from integer_machine.parsing import (
     InputValidationError,
     format_bits,
+    format_signed_bits,
     group_bits,
     parse_decimal,
+    parse_signed_operand,
     parse_unsigned_operand,
 )
 
@@ -263,27 +265,39 @@ def inject_theme() -> None:
           color: inherit !important;
         }
 
+        /* Tab styling - increased spacing */
         div[data-baseweb="tab-list"] {
-          gap: 0.5rem;
+            gap: 2rem !important;
+            padding: 0.5rem 0 !important;
         }
 
         button[data-baseweb="tab"] {
-          color: #A9C4BE !important;
-          font-family: var(--mono);
-          font-weight: 700;
-          letter-spacing: 0.02em;
+            color: #A9C4BE !important;
+            font-family: var(--mono);
+            font-weight: 700;
+            font-size: 1.1rem !important;
+            letter-spacing: 0.02em;
+            padding: 0.75rem 1.5rem !important;
+            border-radius: 4px !important;
+            transition: all 0.2s ease !important;
         }
 
-        button[data-baseweb="tab"] p {
-          color: inherit !important;
+        button[data-baseweb="tab"]:hover {
+            background: rgba(93, 202, 165, 0.1) !important;
+            color: var(--teal) !important;
         }
 
         button[aria-selected="true"][data-baseweb="tab"] {
-          color: var(--teal) !important;
+            color: var(--teal) !important;
+            background: rgba(93, 202, 165, 0.08) !important;
+            border-bottom: 3px solid var(--teal) !important;
         }
 
         div[data-baseweb="tab-highlight"] {
-          background-color: var(--amber) !important;
+            background-color: var(--teal) !important;
+            height: 3px !important;
+            bottom: 0 !important;
+            top: auto !important;
         }
 
         div[data-testid="stExpander"] details {
@@ -317,20 +331,20 @@ def inject_theme() -> None:
           color: var(--ink) !important;
         }
 
-        /* Widget labels: "Decimal integer", "Data size (bits)", "Multiplicand (M)", etc. */
+        /* Widget labels */
         div[data-testid="stWidgetLabel"] label,
         div[data-testid="stWidgetLabel"] p,
         div[data-testid="stWidgetLabel"] span {
           color: var(--ink) !important;
         }
 
-        /* Metric labels: "Input (decimal)", "Product (decimal)", "Quotient (decimal)", etc. */
+        /* Metric labels */
         div[data-testid="stMetricLabel"] p,
         div[data-testid="stMetricLabel"] span {
           color: var(--muted) !important;
         }
 
-        /* Radio group: "Shared input format" options (Decimal / Binary) */
+        /* Radio group */
         div[data-testid="stRadio"] label,
         div[data-testid="stRadio"] label p,
         div[data-testid="stRadio"] label span {
@@ -343,7 +357,7 @@ def inject_theme() -> None:
           color: var(--teal) !important;
         }
 
-        /* Help-icon tooltips that appear on hover next to labels */
+        /* Tooltips */
         div[data-testid="stTooltipContent"],
         div[data-baseweb="tooltip"] {
           background: var(--board-raised) !important;
@@ -461,26 +475,25 @@ def render_trace(rows: list[dict[str, Any]], register_set: str) -> None:
     )
 
 
-def multiplication_trace(result: MultiplicationResult) -> list[dict[str, Any]]:
-    """Present immutable multiplication steps with the constant M register."""
+def signed_multiplication_trace(result: SignedMultiplicationResult) -> list[dict[str, Any]]:
+    """Present signed multiplication steps in professor's Booth's algorithm format."""
     rows = []
-    multiplicand_bits = format_bits(result.multiplicand, result.width)
-    labels = {
-        "cycle": "Cycle",
-        "q0": "Q₀",
-        "action": "Action",
-        "c_before": "C before",
-        "a_before": "A before",
-        "q_before": "Q before",
-        "addition_result": "Add result",
-        "c_after": "C",
-        "a_after": "A",
-        "q_after": "Q",
-    }
+    # Use format_signed_bits to handle negative multiplicands
+    multiplicand_bits = format_signed_bits(result.multiplicand, result.width)
+    
     for step in result.steps:
-        source = asdict(step)
-        row = {label: source[field] for field, label in labels.items()}
-        row["M"] = multiplicand_bits
+        row = {
+            "Cycle": step.cycle,
+            "Q₀Q₋₁": f"{step.q0}{step.q_minus_1}",
+            "Action": step.action,
+            "A before": step.a_before,
+            "Q before": step.q_before,
+            "A after op": step.a_after_operation,
+            "A after shift": step.a_after,
+            "Q after shift": step.q_after,
+            "Q₋₁ after": step.q_minus_1_after,
+            "M": multiplicand_bits,
+        }
         rows.append(row)
     return rows
 
@@ -570,10 +583,10 @@ def render_conversion() -> None:
 
 
 def render_multiplication() -> None:
-    """Render the unsigned add-and-shift multiplication workbench."""
+    """Render the signed Booth's algorithm multiplication workbench."""
     left, right = st.columns([0.86, 1.14], gap="large")
     with left:
-        st.markdown('<div class="bay-label">Input bay · unsigned operands</div>', unsafe_allow_html=True)
+        st.markdown('<div class="bay-label">Input bay · signed operands (Booth\'s algorithm)</div>', unsafe_allow_html=True)
         with st.form("multiplication-form"):
             base_label = st.radio(
                 "Shared input format",
@@ -584,33 +597,33 @@ def render_multiplication() -> None:
             )
             multiplicand_text = st.text_input(
                 "Multiplicand (M)",
-                value="13",
+                value="27",
                 key="multiplication-multiplicand",
             )
             multiplier_text = st.text_input(
                 "Multiplier (Q)",
-                value="11",
+                value="7",
                 key="multiplication-multiplier",
             )
             width = st.number_input(
                 "Data size (bits)",
                 min_value=2,
                 max_value=256,
-                value=8,
+                value=6,
                 step=1,
                 key="multiplication-width",
             )
             submitted = st.form_submit_button(
-                "Run unsigned multiplier",
+                "Run signed multiplier (Booth's algorithm)",
                 use_container_width=True,
             )
 
         if submitted:
             try:
                 base = "decimal" if base_label == "Decimal" else "binary"
-                multiplicand = parse_unsigned_operand(multiplicand_text, base, int(width))
-                multiplier = parse_unsigned_operand(multiplier_text, base, int(width))
-                st.session_state.multiplication_result = multiply_unsigned(
+                multiplicand = parse_signed_operand(multiplicand_text, base, int(width))
+                multiplier = parse_signed_operand(multiplier_text, base, int(width))
+                st.session_state.multiplication_result = multiply_signed(
                     multiplicand, multiplier, int(width)
                 )
                 st.session_state.multiplication_error = None
@@ -619,35 +632,43 @@ def render_multiplication() -> None:
                 st.session_state.multiplication_error = str(exc)
 
     with right:
-        st.markdown('<div class="bay-label">Result bay · A:Q product</div>', unsafe_allow_html=True)
+        st.markdown('<div class="bay-label">Result bay · A:Q product (2n bits)</div>', unsafe_allow_html=True)
         if st.session_state.multiplication_error:
             st.error(st.session_state.multiplication_error)
-        result: MultiplicationResult | None = st.session_state.multiplication_result
+        result: SignedMultiplicationResult | None = st.session_state.multiplication_result
         if result is None and not st.session_state.multiplication_error:
-            st.info("Run the unsigned multiplier to expose the C, A, Q, and M registers.")
+            st.info("Run the signed multiplier to expose A, Q, Q-1, and M registers.")
         elif result is not None:
             st.metric("Product (decimal)", str(result.product))
             register_value(
                 "Product (binary) · A:Q",
                 result.product_bits,
-                f"{result.width * 2}-bit product",
+                f"{result.width * 2}-bit signed product",
             )
 
-    with st.expander("Guided reading · sequential add and shift"):
+    with st.expander("Guided reading · Booth's sequential multiplication"):
         st.markdown(
             r"""
-            1. **Load registers.** Set \(C=0\), \(A=0\), \(Q=\) multiplier, and
+            1. **Load registers.** Set \(A=0\), \(Q=\) multiplier, \(Q_{-1}=0\), and
                \(M=\) multiplicand.
-            2. **Inspect \(Q_0\).** If the least-significant bit is 1, add \(M\) to \(A\);
-               otherwise keep \(A\).
-            3. **Shift as one register.** Shift the concatenated \(C,A,Q\) state right once.
+            2. **Inspect \(Q_0Q_{-1}\).** 
+               - If \(10\): \(A = A - M\)
+               - If \(01\): \(A = A + M\)
+               - If \(00\) or \(11\): no operation
+            3. **Arithmetic shift right.** Shift the concatenated \(A,Q,Q_{-1}\) state
+               right once with sign extension.
             4. **Repeat once per data bit.** After \(n\) cycles, concatenated \(A:Q\)
-               is the \(2n\)-bit unsigned product.
+               is the \(2n\)-bit signed product.
             """
         )
 
     if result is not None:
-        render_trace(multiplication_trace(result), "C · A · Q · M")
+        try:
+            render_trace(signed_multiplication_trace(result), "A · Q · Q₋₁ · M")
+        except ValueError as e:
+            st.error(f"Error displaying trace: {e}")
+            st.write("Product result:", result.product)
+            st.write("Product binary:", result.product_bits)
 
 
 def render_division() -> None:
@@ -737,16 +758,16 @@ st.markdown('<p class="lab-eyebrow">Machine 1 · register-state workbench</p>', 
 st.title("Integer Machine")
 st.markdown(
     """
-    <div class="machine-rail" aria-label="C A Q register bus">
-      <span class="rail-node">C</span><span class="rail-bus"></span>
+    <div class="machine-rail" aria-label="A Q Q-1 register bus">
       <span class="rail-node">A</span><span class="rail-bus"></span>
-      <span class="rail-node">Q</span>
-      <small>carry · accumulator · multiplier / quotient</small>
+      <span class="rail-node">Q</span><span class="rail-bus"></span>
+      <span class="rail-node">Q₋₁</span>
+      <small>accumulator · multiplier/quotient · extra bit for Booth's algorithm</small>
     </div>
     <p class="workbench-intro">
-      Convert fixed-width integers, then inspect unsigned multiplication and division
-      one register transition at a time. The interface is limited to 2–256 bits;
-      the Python teaching core remains arbitrary precision.
+      Convert fixed-width integers, then inspect signed multiplication (Booth's algorithm)
+      and unsigned division (non-restoring) one register transition at a time.
+      The interface is limited to 2–256 bits; the Python teaching core remains arbitrary precision.
     </p>
     """,
     unsafe_allow_html=True,

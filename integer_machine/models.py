@@ -57,6 +57,34 @@ class MultiplicationResult:
     steps: tuple[MultiplicationStep, ...]
 
 
+# ===== ADD THESE NEW CLASSES =====
+@dataclass(frozen=True)
+class SignedMultiplicationStep:
+    """One recorded cycle of Booth's signed sequential multiplication."""
+    cycle: int
+    q0: str
+    q_minus_1: str
+    action: str
+    a_before: str
+    q_before: str
+    a_after_operation: str
+    a_after: str
+    q_after: str
+    q_minus_1_after: str
+
+
+@dataclass(frozen=True)
+class SignedMultiplicationResult:
+    """The fixed-width product and register trace of Booth's multiplication."""
+    width: int
+    multiplicand: int
+    multiplier: int
+    product: int
+    product_bits: str
+    steps: tuple[SignedMultiplicationStep, ...]
+# ===== END ADDED CLASSES =====
+
+
 @dataclass(frozen=True)
 class DivisionStep:
     """One recorded phase of unsigned non-restoring division."""
