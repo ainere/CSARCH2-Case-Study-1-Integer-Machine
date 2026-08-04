@@ -6,7 +6,7 @@
 **Group:** _Group 7_ <br>
 **GitHub Link:** https://github.com/ainere/CSARCH2-Case-Study-1-Integer-Machine <br>
 **Website Link:** https://csarch2-case-study-1-integer-machine-s03-group7.streamlit.app/ <br>
-**Youtube Link:** https://youtu.be/RhpEADWvhXw
+**Youtube Demo Link:** https://youtu.be/RhpEADWvhXw
 
 ## Group Members
 
