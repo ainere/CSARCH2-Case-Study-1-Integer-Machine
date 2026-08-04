@@ -6,6 +6,7 @@
 **Group:** _Group 7_ <br>
 **GitHub Link:** https://github.com/ainere/CSARCH2-Case-Study-1-Integer-Machine <br>
 **Website Link:** https://csarch2-case-study-1-integer-machine-s03-group7.streamlit.app/ <br>
+**Youtube Link:** https://youtu.be/RhpEADWvhXw
 
 ## Group Members
 
@@ -222,6 +223,75 @@ requirements.txt           Runtime dependency
 The `integer_machine/` package is the independent teaching core. It has no
 Streamlit dependency. The `app.py` file acts as the presentation layer: it
 collects inputs, calls the appropriate algorithm, and renders the results.
+
+---
+
+## V. Test Cases
+
+### 1. Decimal to Unsigned and Signed Binary
+
+## Test Cases & Verification
+
+| Test Case Name | Input | Expected Output | Screenshot |
+| :--- | :--- | :--- | :---: |
+| **Out-of-Bounds Positive 8-bit Integer for both** | `256` | **Unsigned:** Outside of Range<br>**Signed:** Outside of Range | ![256 Test](./screenshots/tc01-256.png) |
+| **Out-of-Bounds Positive 8-bit Integer for Signed** | `255` | **Unsigned:** `1111 1111`<br>**Signed:** Outside of Range | ![255 Test](./screenshots/tc02-255.png) |
+| **Out-of-Bounds Negative 8-bit Integer for both** | `-129` | **Unsigned:** Outside of Range<br>**Signed:** Outside of Range | ![-129 Test](./screenshots/tc03-neg129.png) |
+| **Out-of-Bounds Negative 8-bit Integer for Unsigned** | `-128` | **Unsigned:** Outside of Range<br>**Signed:** `1000 0000` | ![-128 Test](./screenshots/tc04-neg128.png) |
+| **String / Character Input** | `CSARCH2` | **Unsigned:** Input must be decimal<br>**Signed:** Input must be decimal | ![String Input](./screenshots/tc05-string.png) |
+| **Float Input** | `4.0` | **Unsigned:** Input must be decimal<br>**Signed:** Input must be decimal | ![Float Input](./screenshots/tc06-float.png) |
+| **In-Bounds Positive Integer for both (8-bit)** | `127` | **Unsigned:** `0111 1111`<br>**Signed:** `0111 1111` | ![127 Test](./screenshots/tc07-127.png) |
+| **Out-of-Bounds Positive 64-bit Integer for both** | `18446744073709551616` | **Unsigned:** Outside of Range<br>**Signed:** Outside of Range | ![64-bit OOB Max](./screenshots/tc08-64bit-oob-pos.png) |
+| **Out-of-Bounds Positive 64-bit Integer for Signed** | `18446744073709551615` | **Unsigned:** `1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111`<br>**Signed:** Outside of Range | ![64-bit Signed Max](./screenshots/tc09-64bit-unsigned-max.png) |
+| **Out-of-Bounds Negative 64-bit Integer for both** | `-9223372036854775809` | **Unsigned:** Outside of Range<br>**Signed:** Outside of Range | ![64-bit OOB Neg](./screenshots/tc10-64bit-oob-neg.png) |
+| **Out-of-Bounds Negative 64-bit Integer for Unsigned** | `-9223372036854775808` | **Unsigned:** Outside of Range<br>**Signed:** `1000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000` | ![64-bit Signed Min](./screenshots/tc11-64bit-signed-min.png) |
+| **In-Bounds Positive Integer for both (64-bit)** | `1000` | **Unsigned:** `0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0011 1110 1000`<br>**Signed:** `0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0011 1110 1000` | ![1000 Test](./screenshots/tc12-1000.png) |
+| **2-bit Zero** | `0` | **Unsigned:** `00`<br>**Signed:** `00` | ![2-bit Zero](./screenshots/tc13-2bit-zero.png) |
+| **2-bit Signed Minimum** | `-2` | **Unsigned:** `-2 is outside the unsigned range`<br>**Signed:** `10` | ![2-bit Min](./screenshots/tc14-2bit-neg2.png) |
+| **2-bit Unsigned Maximum** | `3` | **Unsigned:** `11`<br>**Signed:** Outside of Range | ![2-bit Max](./screenshots/tc15-2bit-3.png) |
+| **8-bit Input with Explicit Plus Sign** | `+8` | **Unsigned:** `0000 1000`<br>**Signed:** `0000 1000` | ![Plus Sign Input](./screenshots/tc16-plus8.png) |
+| **Empty Input** | *(Blank)* | **Error:** `Enter a decimal integer` | ![Empty Input](./screenshots/tc17-empty.png) |
+
+### 2. Sequential Circuit Binary Multiplier
+
+| Test Case Name | Input | Expected Output | Screenshot |
+| :--- | :--- | :--- | :---: |
+| **8-bit Multiplier is Zero (Decimal)** | `M = 10, Q = 0` | `0000 0000` | ![Multiplier Zero Dec](./screenshots/tc18-mult-zero-dec.png) |
+| **8-bit Multiplicand is Zero (Decimal)** | `M = 0, Q = 10` | `0000 0000` | ![Multiplicand Zero Dec](./screenshots/tc19-mcand-zero-dec.png) |
+| **8-bit Multiplier is Zero (Binary)** | `M = 0000 0010, Q = 0000 0000` | `0000 0000` | ![Multiplicand Zero Bin](./screenshots/tc20-mult-zero-bin.png) |
+| **8-bit Multiplicand is Zero (Binary)** | `M = 0000 0000, Q = 0000 0010` | `0000 0000` | ![Multiplicand Zero Bin](./screenshots/tc20-mcand-zero-bin.png) |
+| **8-bit Standard Multiplication (Decimal)** | `M = 5, Q = 3` | `0000 1111` | ![Std Mult Dec](./screenshots/tc21-std-mult-dec.png) |
+| **4-bit Standard Negative Multiplication (Decimal)** | `M = -5, Q = 3` | `1111 0001` | ![Std Neg Mult Dec](./screenshots/tc22-std-neg-dec.png) |
+| **4-bit Double Negative Multiplication (Decimal)** | `M = -5, Q = -3` | `0000 1111` | ![Double Neg Dec](./screenshots/tc23-double-neg-dec.png) |
+| **4-bit Standard Multiplication (Binary)** | `M = 0101, Q = 0011` | `0000 1111` | ![Std Mult Bin](./screenshots/tc24-std-mult-bin.png) |
+| **4-bit Standard Negative Multiplication (Binary - M)** | `M = 1011, Q = 0011` | `1111 0001` | ![Std Neg Bin M](./screenshots/tc25-std-neg-bin-m.png) |
+| **4-bit Standard Negative Multiplication (Binary - Both)** | `M = 1011, Q = 1101` | `0000 1111` | ![Std Neg Bin Both](./screenshots/tc26-std-neg-bin-both.png) |
+| **Different Length Binary Input** | `M = 1000, Q = 100` | `0010 0000` | ![Diff Length Bin](./screenshots/tc27-diff-len-bin.png) |
+| **String / Character Input** | `CSARCH2` | **Error:** Invalid input | ![String Input Mult](./screenshots/tc28-string-mult.png) |
+| **Float Input** | `4.0` | **Error:** Invalid input | ![Float Input Mult](./screenshots/tc28-string-mult.png) |
+| **Operand Exceeds Data Size (Decimal)** | `M = 20, Q = 4 (Data size = 4)` | **Error:** `Value does not fit in 4 unsigned bits` | ![Size Exceed Dec](./screenshots/tc31-size-exceed-dec.png) |
+| **Operand Exceeds Data Size (Binary)** | `M = 10000, Q = 100 (Data size = 4)` | **Error:** `Binary input exceeds the selected 4-bit size` | ![Size Exceed Bin](./screenshots/tc32-size-exceed-bin.png) |
+| **Empty Input (Decimal)** | `M = (Blank), Q = (Blank)` | **Error:** `Enter a decimal integer.` | ![Empty Dec](./screenshots/tc33-empty-dec.png) |
+| **Empty Input (Binary)** | `M = (Blank), Q = (Blank)` | **Error:** `Enter a binary value.` | ![Empty Bin](./screenshots/tc34-empty-bin.png) |
+
+### 3. Non-restoring Division
+
+| Test Case Name | Input | Expected Output | Screenshot |
+| :--- | :--- | :--- | :---: |
+| **4-bit Dividend is Zero (Decimal)** | `Q = 0, M = 10` | `0000 0000` | ![Dividend Zero Dec](./screenshots/tc35-div-zero-dec.png) |
+| **4-bit Divisor is Zero (Decimal)** | `Q = 10, M = 0` | **Error:** Division by zero | ![Divisor Zero Dec](./screenshots/tc36-divisor-zero-dec.png) |
+| **4-bit Dividend is Zero (Binary)** | `Q = 0000, M = 1000` | `0000 0000` | ![Dividend Zero Bin](./screenshots/tc37-div-zero-bin.png) |
+| **4-bit Divisor is Zero (Binary)** | `Q = 1000, M = 0000` | **Error:** Division by zero | ![Divisor Zero Bin](./screenshots/tc38-divisor-zero-bin.png) |
+| **4-bit Standard Division w/o Remainder (Decimal)** | `Q = 12, M = 4` | `0000 0011` *(3)* | ![Div No Rem Dec](./screenshots/tc39-div-no-rem-dec.png) |
+| **4-bit Standard Division w/ Remainder (Decimal)** | `Q = 11, M = 4` | `0011 0010` *(2 r 3)* | ![Div Rem Dec](./screenshots/tc40-div-rem-dec.png) |
+| **4-bit Standard Division w/o Remainder (Binary)** | `Q = 1100, M = 0100` | `0000 0011` *(3)* | ![Div No Rem Bin](./screenshots/tc41-div-no-rem-bin.png) |
+| **4-bit Standard Division w/ Remainder (Binary)** | `Q = 1011, M = 0100` | `0011 0010` *(2 r 3)* | ![Div Rem Bin](./screenshots/tc42-div-rem-bin.png) |
+| **String / Character Input** | `CSARCH2` | **Error:** Invalid input | ![String Input Div](./screenshots/tc43-string-div.png) |
+| **Float Input** | `4.0` | **Error:** Invalid input | ![Float Input Div](./screenshots/tc43-string-div.png) |
+| **Negative Dividend** | `Q = -10, M = 4 (Data size = 8)` | **Error:** `Arithmetic operands must be unsigned` | ![Neg Dividend](./screenshots/tc45-neg-dividend.png) |
+| **Negative Divisor** | `Q = 2, M = -4 (Data size = 8)` | **Error:** `Arithmetic operands must be unsigned` | ![Neg Divisor](./screenshots/tc46-neg-divisor.png) |
+| **Operand Exceeds Data Size (Decimal)** | `Q = 20, M = 4 (Data size = 4)` | **Error:** `Value does not fit in 4 unsigned bits.` | ![Size Exceed Dec Div](./screenshots/tc47-size-exceed-dec-div.png) |
+| **Operand Exceeds Data Size (Binary)** | `Q = 10000, M = 10 (Data size = 4)` | **Error:** `Binary input exceeds the selected 4-bit size.` | ![Size Exceed Bin Div](./screenshots/tc48-size-exceed-bin-div.png) |
 
 ---
 
