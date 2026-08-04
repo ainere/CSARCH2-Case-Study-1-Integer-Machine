@@ -5,7 +5,7 @@
 **Section:** _S03_ <br>
 **Group:** _Group 7_ <br>
 **GitHub Link:** https://github.com/ainere/CSARCH2-Case-Study-1-Integer-Machine <br>
-**Website Link:** _Pending deployment_
+**Website Link:** https://csarch2-case-study-1-integer-machine-s03-group7.streamlit.app/ <br>
 
 ## Group Members
 
