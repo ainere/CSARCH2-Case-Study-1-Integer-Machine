@@ -311,26 +311,14 @@ collects inputs, calls the appropriate algorithm, and renders the results.
 - Documented local installation, execution, input rules, limitations, and
   project structure.
 
-## Current Limitations and Pending Work
+## Disclosure on the Use of AI / LLM Tools
 
-- Division currently supports **unsigned operands only**.
-- Signed division is not implemented.
-- Calculations are not saved after the application session ends.
-- Per-cycle animation is not included; the complete states are presented in
-  tables instead.
-- Representative screenshots still need to be added.
-- Repository visibility should be confirmed before final submission.
-- A public 5-8 minute YouTube walkthrough still needs to be recorded and linked.
-- Live website deployment is still pending.
+The team utilized AI tools such as **ChatGPT** for brainstorming our code and UI platform, eventually landing on Python and Streamlit.
 
-## Completed Checking
+All core content and actual implementation of the interactive exhibit were reviewed, verified, and executed entirely by us. AI tools were merely used to support our learning and polish the user experience.
 
-- All 48 local development tests passed before preparing the clean repository.
-- Python compilation checks passed for the application and calculation package.
-- A separate 65-bit multiplication and division smoke check matched Python's
-  arithmetic results.
-- Desktop and mobile-width browser layouts were reviewed.
-- The complete branch received a final review with no critical or important
-  findings.
+| Tool    | Purpose                                                               |
+| ------- | --------------------------------------------------------------------- |
+| ChatGPT | Brainstorming the platforms to be used for both logic and UI design   |
 
 ---
